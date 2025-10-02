@@ -1,6 +1,6 @@
 # StocksAPI Service
 
-## Considerations
+## Overview
 
 StocksAPI is a small, FastAPI service that makes use of a Redis backend to cache and
 present data persisted from external sources, including Polygon and Marketwatch.
