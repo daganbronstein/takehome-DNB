@@ -25,13 +25,13 @@ external source.
 
 ## Setup
 
-1. **Build the container and insert the Polygon API Key**:
+1. **Build the container**:
     ```bash
-   docker build --tag "stocks-api" . --build-arg POLYGON_API_KEY="key"
+   docker build --tag "stocks-api" .
     ```
-2. Run the container and expose port 8000 (or use a different local port at your convenience)
+2. Run the container with the Polygon API key
     ```bash
-   docker run --name StocksAPI -p 8000:8000 stocks-api 
+   docker run --name StocksAPI -p 8000:8000 -e POLYGON_API_KEY="key" stocks-api 
     ```
    
 ## Usage

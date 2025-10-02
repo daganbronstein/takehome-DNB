@@ -23,9 +23,5 @@ ADD requirements.txt /app
 RUN pip install -r /app/requirements.txt
 ADD src /app/
 
-# Not best practice, but let's not get into docker secrets.
-ARG POLYGON_API_KEY
-ENV POLYGON_API_KEY=$POLYGON_API_KEY
-
 EXPOSE 8000
 ENTRYPOINT ["/bin/sh", "/app/start.sh"]
