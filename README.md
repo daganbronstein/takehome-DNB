@@ -25,7 +25,7 @@ external source.
 
 ## Setup
 
-1. **Build the container and insert the Polyong API Key**:
+1. **Build the container and insert the Polygon API Key**:
     ```bash
    docker build --tag "stocks-api" . --build-arg POLYGON_API_KEY="key"
     ```
