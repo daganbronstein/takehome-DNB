@@ -53,7 +53,7 @@ async def _fetch(api_key: str, symbol: str, _date: date) -> PolygonRecord:
         content = response.json()
 
         if content.get("status", "ERROR") == "ERROR":
-            raise PolygonGenericException("Polygon returned an API error", data=content)
+            raise PolygonGenericException("Polygon returned an API error. API Key is likely invalid.", data=content)
 
         # Hack; need to look further into this, no time to do so
         content["from_"] = content["from"]
@@ -63,5 +63,7 @@ async def _fetch(api_key: str, symbol: str, _date: date) -> PolygonRecord:
         raise PolygonConnectionError("Failed to connect to Polygon API", exception=err)
     except requests.exceptions.JSONDecodeError as err:
         raise PolygonJSONError("Polygon API returned malformed response", exception=err)
+    except PolygonGenericException as e:
+        raise e
     except Exception as err:
         raise PolygonGenericException("An unknown exception was raised when calling Polygon API", exception=err)
