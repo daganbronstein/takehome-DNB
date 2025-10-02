@@ -14,5 +14,5 @@ class StockModel(BaseModel):
     status: str
     symbol: str
     volume: int
-    performance: MarketwatchRecord
+    performance: MarketwatchRecord | None
     amount: int

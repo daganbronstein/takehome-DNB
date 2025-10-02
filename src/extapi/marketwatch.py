@@ -5,7 +5,7 @@ from enums.cache_keys import CacheKeys
 from models.marketwatch_record import MarketwatchRecord
 
 
-async def marketwatch_get_performance(stock_symbol) -> MarketwatchRecord:
+async def marketwatch_get_performance(stock_symbol) -> MarketwatchRecord | None:
     """
     The performance is cached/calculated server-side, we have no need for selenium, only the raw HTML.
     """
@@ -19,7 +19,11 @@ async def marketwatch_get_performance(stock_symbol) -> MarketwatchRecord:
     content: str = _fetch(stock_symbol)
 
     # No reason to turn the HTML into an AST, or use regex. Both are slow, and content is not dynamic.
-    header_pos: int = content.index(">Performance</span>")
+    try:
+        header_pos: int = content.index(">Performance</span>")
+    except ValueError:
+        #  No performance data.
+        return None
 
     # The table comes immediately after the header. Determine where the table ends,
     #  to prevent scraping something we didn't mean to.
@@ -61,7 +65,9 @@ async def marketwatch_get_performance(stock_symbol) -> MarketwatchRecord:
 
 
 def _fetch(stock_symbol: str) -> str:
-    return requests.get(f"https://www.marketwatch.com/investing/stock/{stock_symbol}", headers={
+    res = requests.get(f"https://www.marketwatch.com/investing/stock/{stock_symbol}", headers={
         "Accept-Language": "en-GB,he;q=0.5",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0",
-    }).content.decode()
+    })
+
+    return res.content.decode()

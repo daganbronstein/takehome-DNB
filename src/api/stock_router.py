@@ -33,7 +33,7 @@ async def update_stock(stock_symbol: str, update: UpdateStockRequest) -> str:
 
 @stock_router.get("/{stock_symbol}")
 async def get_stock(stock_symbol: str) -> StockModel:
-    mw_record: MarketwatchRecord = await marketwatch_get_performance(stock_symbol)
+    mw_record: MarketwatchRecord | None = await marketwatch_get_performance(stock_symbol)
     pg_record: PolygonRecord = await polygon_get_stocks(stock_symbol, datetime.today() - timedelta(days=1))
 
     stock_amount: int = StocksService().get_stock_amount(stock_symbol)

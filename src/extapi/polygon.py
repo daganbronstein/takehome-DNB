@@ -52,8 +52,11 @@ async def _fetch(api_key: str, symbol: str, _date: date) -> PolygonRecord:
         # Polygon API guarantees all responses to be presented in JSON, including failures.
         content = response.json()
 
+        if response.status_code == 404:
+            raise PolygonGenericException(f"Symbol {symbol} was not found.", data=content)
+
         if content.get("status", "ERROR") == "ERROR":
-            raise PolygonGenericException("Polygon returned an API error. API Key is likely invalid.", data=content)
+            raise PolygonGenericException(f"Polygon returned an API error. API Key is likely invalid. ({content["error"]})", data=content)
 
         # Hack; need to look further into this, no time to do so
         content["from_"] = content["from"]
