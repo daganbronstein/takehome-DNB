@@ -27,11 +27,11 @@ external source.
 
 1. **Build the container and insert the Polyong API Key**:
     ```bash
-   docker build --tag 'StocksAPI' . --build-arg POLYGON_API_KEY=key
+   docker build --tag "stocks-api" . --build-arg POLYGON_API_KEY="key"
     ```
 2. Run the container and expose port 8000 (or use a different local port at your convenience)
     ```bash
-   docker run --name StocksAPI -p 8000:8000 StocksAPI 
+   docker run --name StocksAPI -p 8000:8000 stocks-api 
     ```
    
 ## Usage
