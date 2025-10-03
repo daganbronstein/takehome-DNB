@@ -34,7 +34,8 @@ external source.
 
 1. **Build the container**:
     ```bash
-   docker build --tag "stocks-api" .
+    cd takehome-DNB/
+    docker build --tag "stocks-api" .
     ```
 2. Run the container with the Polygon API key
     ```bash
