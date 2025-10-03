@@ -46,7 +46,7 @@ external source.
 
 ### Fetching Stock information
 ```bash 
-curl -i -H "Content-Type: application/json" -X GET http://localhost:8000/stock/AAPL  
+curl -i -H "Accept: application/json" -X GET http://localhost:8000/stock/AAPL  
 ```
 
 ### Updating held stocks
