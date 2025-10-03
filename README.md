@@ -33,6 +33,13 @@ external source.
     ```bash
    docker run --name StocksAPI -p 8000:8000 -e POLYGON_API_KEY="key" stocks-api 
     ```
+
+## Tests
+
+1. Install Python 3.12
+2. `docker run --name redis -p 6379:6379 -d redis`
+3. Set environment variable POLYGON_API_KEY
+4. run `pytest` from the root project directory
    
 ## Usage
 
