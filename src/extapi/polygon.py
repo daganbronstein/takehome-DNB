@@ -27,12 +27,12 @@ async def polygon_get_stocks(symbol: str, _date: date) -> PolygonRecord:
 
     # make use of caching; we have limited API calls
     cache_key = _get_cache_key(symbol, _date)
-    result: PolygonRecord | None = CacheService().get_object(cache_key)
+    result: PolygonRecord | None = await CacheService().get_object(cache_key)
     if result:
         return result
 
     result = await _fetch(POLYGON_API_KEY, symbol, _date)
-    CacheService().set_object(cache_key, result)
+    await CacheService().set_object(cache_key, result)
 
     # TODO additional enrichment/transformations?
 

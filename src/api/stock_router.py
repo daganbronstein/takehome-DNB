@@ -23,7 +23,7 @@ async def update_stock(stock_symbol: str, update: UpdateStockRequest) -> str:
     if not update.amount:
         raise HTTPException(status_code=400, detail="You must insert a valid amount.")
 
-    StocksService().add_stock(stock_symbol, update.amount)
+    await StocksService().add_stock(stock_symbol, update.amount)
 
     if update.amount < 0:
         return f"{-update.amount} units of stock {stock_symbol} were removed from your stock record."
@@ -36,7 +36,7 @@ async def get_stock(stock_symbol: str) -> StockModel:
     mw_record: MarketwatchRecord | None = await marketwatch_get_performance(stock_symbol)
     pg_record: PolygonRecord = await polygon_get_stocks(stock_symbol, datetime.today() - timedelta(days=1))
 
-    stock_amount: int = StocksService().get_stock_amount(stock_symbol)
+    stock_amount: int = await StocksService().get_stock_amount(stock_symbol)
 
     response: StockModel = StockModel(
         afterHours=pg_record["afterHours"],

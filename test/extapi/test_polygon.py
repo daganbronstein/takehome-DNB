@@ -7,6 +7,7 @@ from extapi.polygon import polygon_get_stocks, PolygonConnectionError
 from models.polygon_record import PolygonRecord
 
 
+@pytest.mark.asyncio(scope="session")
 async def test_req_get_stocks(yesterday, monkeypatch):
     """
     A single unit test that actually calls the API, confirming that fetch() works
@@ -21,6 +22,7 @@ async def test_req_get_stocks(yesterday, monkeypatch):
 
 
 @mock.patch('extapi.polygon.POLYGON_API', 'http://0.0.0.0')
+@pytest.mark.asyncio(scope="session")
 async def test_fetch_badurl(yesterday):
     with pytest.raises(PolygonConnectionError) as e:
         await polygon_get_stocks("ABCD", yesterday)

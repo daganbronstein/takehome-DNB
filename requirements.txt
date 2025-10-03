@@ -1,3 +1,4 @@
+async_asgi_testclient~=1.4.11
 pytest~=8.4.2
 httpx==0.28.1
 pydantic~=2.11.9

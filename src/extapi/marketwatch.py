@@ -12,7 +12,7 @@ async def marketwatch_get_performance(stock_symbol) -> MarketwatchRecord | None:
     # We will cache this content for one minute, as it appears the page updates minutely. If seconds matter, this
     # will require a different strategy.
     cache_key: str = f"{CacheKeys.MARKETWATCH}:{stock_symbol}"
-    result: MarketwatchRecord = CacheService().get_object(cache_key)
+    result: MarketwatchRecord = await CacheService().get_object(cache_key)
     if result:
         return result
 
@@ -59,7 +59,7 @@ async def marketwatch_get_performance(stock_symbol) -> MarketwatchRecord | None:
         "one_year": data[4]
     }
 
-    CacheService().set_object(cache_key, result)
+    await CacheService().set_object(cache_key, result)
 
     return result
 

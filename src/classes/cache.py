@@ -5,8 +5,8 @@ import threading
 from typing import Any, TypeVar
 
 import fakeredis
-import redis
-from redis.lock import Lock
+from redis import asyncio as aio_redis
+from redis.asyncio.lock import Lock
 
 from enums.cache_keys import CacheKeys
 
@@ -17,48 +17,52 @@ SEVEN_DAYS = 604800
 class CacheService:
     _instance: 'CacheService' = None
     _lock: threading.Lock = threading.Lock()
-    rc: redis.Redis
+    rc: aio_redis.Redis
 
     def __new__(cls):
         if cls._instance is None:
             with cls._lock:
                 if cls._instance is None:
                     cls._instance = super(CacheService, cls).__new__(cls)
-                    cls._connect(cls._instance)
+                    cls._instance._connect()
         return cls._instance
 
     def _connect(self) -> None:
         try:
             if os.environ.get("USE_FAKEREDIS", False):
-                self.rc = fakeredis.FakeRedis()
+                # self.rc = fakeredis.FakeRedis()
+                #logger.info("Connected to fakeredis server")
+                pass
             else:
-                self.rc = redis.Redis(host='localhost', port=6379, decode_responses=True)
-            logger.info("Connected to fakeredis server")
+                self.rc = aio_redis.Redis(host='localhost', port=6379, decode_responses=True)
         except Exception as e:
             logger.error(f"Failed to connect to Redis: {e}")
 
+    async def shutdown(self):
+        await self.rc.aclose()
+
     # TODO reconnect
 
-    def is_connected(self) -> bool:
+    async def is_connected(self) -> bool:
         try:
-            self.rc.ping()
-        except redis.ConnectionError:
+            await self.rc.ping()
+        except aio_redis.ConnectionError:
             return False
 
         return True
 
-    def assert_connected(self) -> None:
-        if not self.rc or not self.is_connected():
+    async def assert_connected(self) -> None:
+        if not self.rc or not await self.is_connected():
             # TODO do proper exception, but this really shouldn't happen
             raise Exception("Attempted to interact with not initialized Redis client")
 
-    def clear(self) -> None:
+    async def clear(self) -> None:
         # TODO only for tests, but quite inefficient! We should use a pipeline, and we should also
         #   add safeguards so that this is not accidently run against production redis (such as prefix test: to all keys)
 
         # mypy complains. There's an issue with the annotations, this is not an Awaitable.
-        for key in self.rc.keys():
-            self.rc.delete(key)
+        for key in await self.rc.keys():
+            await self.rc.delete(key)
 
     def lock(self, lock_name: str, timeout: float | None = None) -> Lock:
         """Acquires a lock, should be used to prevent race conditions. If the issue is a race between individual steps,
@@ -68,15 +72,16 @@ class CacheService:
         #  Better return a local CacheLock with a contract that we define, not Redis.
         return self.rc.lock(f"{CacheKeys.LOCK}:{lock_name}", timeout)
 
-    def get_value(self, key: str) -> str:
+    async def get_value(self, key: str) -> str:
         """Fetches a record stored as a simple value (str, int, float), but will always return it as a string."""
-        self.assert_connected()
+        await self.assert_connected()
 
         # TODO mypy claims this is awaitable, the result is not awaitable. Typings assume aio-redis installed or
         #  something? Not entirely sure, need to look further into this
-        return str(self.rc.get(key) or "")
+        ret = await self.rc.get(key)
+        return ret or ""
 
-    def set_value(self, key: str, value: str | int | float, expires: int = 0) -> None:
+    async def set_value(self, key: str, value: str | int | float, expires: int = 0) -> None:
         """
         Stores a simple value. Even if a float or int is provided, it will be returned as a string later.
         TODO We can consider storing the type of the value as part of the key, and then use a converter to restore it.
@@ -85,10 +90,10 @@ class CacheService:
         :param value: value (will become string if it isn't)
         :param expires: Time in seconds to maintain the record. Default is 0, which will apply a 7d TTL
         """
-        self.rc.set(key, value, datetime.timedelta(seconds=expires or SEVEN_DAYS))
+        await self.rc.set(key, value, datetime.timedelta(seconds=expires or SEVEN_DAYS))
 
 
-    def get_object(self, key: str) -> Any:
+    async def get_object(self, key: str) -> Any:
         """
         Fetches a record stored as a structured value and returns a dict.
 
@@ -96,9 +101,9 @@ class CacheService:
         """
 
         # Annoyingly, must return Any for now. There are solutions.
-        return self.rc.hgetall(key)
+        return await self.rc.hgetall(key)
 
-    def set_object(self, key: str, value: Any, expires: int = 0) -> None:
+    async def set_object(self, key: str, value: Any, expires: int = 0) -> None:
         """
         Stores a dict as a record in the cache. If already present, will overwrite
 
@@ -106,5 +111,5 @@ class CacheService:
         :param value: value (currently only dicts supported)
         :param expires: Time in seconds to maintain the record. Default is 0, which will apply a 7d TTL
         """
-        self.rc.hset(key, mapping=value)
-        self.rc.expire(key, datetime.timedelta(seconds=expires or SEVEN_DAYS))
+        await self.rc.hset(key, mapping=value)
+        await self.rc.expire(key, datetime.timedelta(seconds=expires or SEVEN_DAYS))
